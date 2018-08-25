@@ -2,38 +2,38 @@
 <ViewFlipper
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
-	tools:context=".WifiSetup"
+	android:id="@+id/viewflipper"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
-	android:id="@+id/viewflipper"
+	tools:context=".WifiSetup"
 	>
 <ScrollView
+	android:id="@+id/FirstView"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
-	android:id="@+id/FirstView"
 	>
 
 <LinearLayout
+	android:id="@+id/logonLayout"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:id="@+id/logonLayout"
-    android:orientation="vertical"
-	android:gravity="center_horizontal|top">
+	android:gravity="center_horizontal|top"
+	android:orientation="vertical">
 
 	<ImageView
         android:id="@+id/logo"
         android:layout_width="fill_parent"
 		android:layout_height="200dp"
+		android:contentDescription="@string/LOGO"
+		android:padding="0dp"
 		android:scaleType="fitCenter"
-        android:contentDescription="@string/LOGO"
-        android:src="@drawable/ccc34c3logo"
-		android:padding="0dp" />
+		android:src="@drawable/emflogo" />
 
 	<TextView
-		android:layout_height="wrap_content"
 		android:layout_width="wrap_content"
-		android:autoLink="web"
+		android:layout_height="wrap_content"
 		android:layout_marginTop="15dp"
+		android:autoLink="web"
 		android:text="@string/twitter"/>
 
 	<CheckBox android:id="@+id/check5g"
@@ -47,35 +47,35 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
-		android:textAlignment="center"
-		android:text="@string/l5ghz"/>
+		android:text="@string/l5ghz"
+		android:textAlignment="center" />
 	<TextView
-		android:layout_marginTop="5dp"
 		android:id="@+id/labelkeystore"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
+		android:layout_marginTop="5dp"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
-		android:textAlignment="center"
-		android:text="@string/lkeystore"/>
+		android:text="@string/lkeystore"
+		android:textAlignment="center" />
 
 	<LinearLayout
 		android:id="@+id/logindata"
 	    android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:orientation="vertical"
 		android:gravity="center_horizontal|top"
+		android:orientation="vertical"
 		android:visibility="gone">
 
         <EditText
 			android:id="@+id/username"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
+			android:layout_marginTop="15dp"
 			android:ems="10"
+			android:hint="@string/Username"
 			android:inputType="textEmailAddress"
 			android:padding="5dp"
-			android:layout_marginTop="15dp"
-			android:hint="@string/Username"
 			>
 			<requestFocus />
 		</EditText>
@@ -84,11 +84,11 @@
 			android:id="@+id/password"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
+			android:layout_marginTop="5dp"
 			android:ems="10"
+			android:hint="@string/Password"
 			android:inputType="textPassword"
 			android:padding="5dp"
-			android:layout_marginTop="5dp"
-			android:hint="@string/Password"
 			/>
 	</LinearLayout>
 
@@ -96,8 +96,8 @@
 		android:id="@+id/button1"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="@string/Logon"
-		android:layout_margin="15dp"/>
+		android:layout_margin="15dp"
+		android:text="@string/Logon" />
 
 	<Space
 		android:layout_width="wrap_content"
@@ -107,11 +107,11 @@
 </ScrollView>
 
 		<LinearLayout
+			android:id="@+id/logonLayout2"
 			android:layout_width="fill_parent"
 			android:layout_height="fill_parent"
-			android:id="@+id/logonLayout2"
-			android:orientation="vertical"
 			android:gravity="center"
+			android:orientation="vertical"
 			>
 			<TextView
 				android:id="@+id/resulttitle"

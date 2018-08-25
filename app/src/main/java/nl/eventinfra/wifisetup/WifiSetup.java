@@ -15,55 +15,14 @@
 
 package nl.eventinfra.wifisetup;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-import android.provider.Settings.Secure;
-import android.security.KeyChain;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.net.UnknownHostException;
-
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Security;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-/* import android.util.Base64; */
-import org.json.JSONException;
-import org.json.JSONObject;
-import nl.eventinfra.wifisetup.R;
-
-
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiEnterpriseConfig;
+import android.net.wifi.WifiEnterpriseConfig.Eap;
 import android.net.wifi.WifiEnterpriseConfig.Phase2;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -74,18 +33,24 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.Toast;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.CheckBox;
+import android.widget.Toast;
 import android.widget.ViewFlipper;
 
+import java.io.InputStream;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.List;
+
+/* import android.util.Base64; */
 // API level 18 and up
-import android.net.wifi.WifiEnterpriseConfig;
-import android.net.wifi.WifiEnterpriseConfig.Eap;
 
 public class WifiSetup extends Activity {
+	protected static final int SHOW_PREFERENCES = 0;
 	// FIXME This should be a configuration setting somehow
 	private static final String INT_EAP = "eap";
 	private static final String INT_PHASE2 = "phase2";
@@ -101,15 +66,12 @@ public class WifiSetup extends Activity {
 	private static final String INT_IDENTITY = "identity";
 	private static final String INT_ANONYMOUS_IDENTITY = "anonymous_identity";
 	private static final String INT_ENTERPRISEFIELD_NAME = "android.net.wifi.WifiConfiguration$EnterpriseField";
-	
 	// Because android.security.Credentials cannot be resolved...
 	private static final String INT_KEYSTORE_URI = "keystore://";
 	private static final String INT_CA_PREFIX = INT_KEYSTORE_URI + "CACERT_";
 	private static final String INT_PRIVATE_KEY_PREFIX = INT_KEYSTORE_URI + "USRPKEY_";
 	private static final String INT_PRIVATE_KEY_ID_PREFIX = "USRPKEY_";
 	private static final String INT_CLIENT_CERT_PREFIX = INT_KEYSTORE_URI + "USRCERT_";
-	
-	protected static final int SHOW_PREFERENCES = 0;
     private Handler mHandler = new Handler();
 	private EditText username;
 	private EditText password;
@@ -127,11 +89,12 @@ public class WifiSetup extends Activity {
 	private String s_password;
 	private ViewFlipper flipper;
 
-	private void toastText(final String text) {
-		if (toast != null)
-			toast.cancel();
-		toast = Toast.makeText(getBaseContext(), text, Toast.LENGTH_SHORT);
-		toast.show();
+	static String removeQuotes(String str) {
+		int len = str.length();
+		if ((len > 1) && (str.charAt(0) == '"') && (str.charAt(len - 1) == '"')) {
+			return str.substring(1, len - 1);
+		}
+		return str;
 	}
 
 	/*
@@ -143,6 +106,17 @@ public class WifiSetup extends Activity {
 		return wifiManager.is5GHzBandSupported();
 	}
 	*/
+
+	static String surroundWithQuotes(String string) {
+		return "\"" + string + "\"";
+	}
+
+	private void toastText(final String text) {
+		if (toast != null)
+			toast.cancel();
+		toast = Toast.makeText(getBaseContext(), text, Toast.LENGTH_SHORT);
+		toast.show();
+	}
 
 	// Called when the activity is first created.
 	@Override
@@ -232,7 +206,7 @@ public class WifiSetup extends Activity {
 					}
 				};
 				t.start();
-				
+
 			}
 		});
 
@@ -240,7 +214,7 @@ public class WifiSetup extends Activity {
 
 	private void saveWifiConfig() {
 		WifiManager wifiManager = (WifiManager) this.getApplicationContext().getSystemService(WIFI_SERVICE);
-		if (!wifimanager) {
+		if (wifiManager == null) {
 			return;
 		}
 		wifiManager.setWifiEnabled(true);
@@ -259,19 +233,19 @@ public class WifiSetup extends Activity {
 		}
 
 		if (check5g.isChecked()) {
-			ssid = "34C3";
+			ssid = "emfcamp";
 		} else {
-			ssid = "34C3-legacy";
+			ssid = "emfcamp-legacy18";
 		}
-		subject_match = "/CN=radius.c3noc.net";
-		altsubject_match = "DNS:radius.c3noc.net";
+		subject_match = "/CN=radius.emfcamp.org";
+		altsubject_match = "DNS:radius.emfcamp.org";
 
 		s_username = username.getText().toString();
 		s_password = password.getText().toString();
 		realm = "";
 		if (s_username.equals("") && s_password.equals("")) {
-			s_username = "34c3";
-			s_password = "34c3";
+			s_username = "emf";
+			s_password = "emf";
 		} else {
 			if (s_username.contains("@")) {
 				int idx = s_username.indexOf("@");
@@ -280,7 +254,7 @@ public class WifiSetup extends Activity {
 		}
 
 
-		// Use the existing eduroam profile if it exists.
+		// Use the existing ssid profile if it exists.
 		boolean ssidExists = false;
 		if (configs != null) {
 			for (WifiConfiguration config : configs) {
@@ -291,12 +265,12 @@ public class WifiSetup extends Activity {
 				}
 			}
 		}
-		
+
 		currentConfig.SSID = surroundWithQuotes(ssid);
 		currentConfig.hiddenSSID = false;
 		currentConfig.priority = 40;
 		currentConfig.status = WifiConfiguration.Status.DISABLED;
-		
+
 		currentConfig.allowedKeyManagement.clear();
 		currentConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_EAP);
 
@@ -306,7 +280,7 @@ public class WifiSetup extends Activity {
 		currentConfig.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
 		currentConfig.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
 
-		
+
 		// PairwiseCiphers (CCMP = WPA2 only)
 		currentConfig.allowedPairwiseCiphers.clear();
 		currentConfig.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
@@ -329,8 +303,8 @@ public class WifiSetup extends Activity {
 		configMap.put(INT_EAP, "TTLS");
 		configMap.put(INT_PHASE2, "auth=PAP");
 		configMap.put(INT_ENGINE, "0");
-		// configMap.put(INT_CA_CERT, INT_CA_PREFIX + ca_name);
 
+		// This sets the CA certificate.
 		applyAndroid43EnterpriseSettings(currentConfig, configMap);
 
 		if (!ssidExists) {
@@ -341,9 +315,8 @@ public class WifiSetup extends Activity {
 			wifiManager.enableNetwork(currentConfig.networkId, false);
 		}
 		wifiManager.saveConfiguration();
-		
-	}
 
+	}
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	private void applyAndroid43EnterpriseSettings(WifiConfiguration currentConfig, HashMap<String,String> configMap) {
@@ -352,18 +325,18 @@ public class WifiSetup extends Activity {
 			InputStream in = getResources().openRawResource(R.raw.cacert);
 			// InputStream in = new ByteArrayInputStream(Base64.decode(ca.replaceAll("-----(BEGIN|END) CERTIFICATE-----", ""), 0));
 			X509Certificate caCert = (X509Certificate) certFactory.generateCertificate(in);
-		
+
 			WifiEnterpriseConfig enterpriseConfig = new WifiEnterpriseConfig();
 			enterpriseConfig.setPhase2Method(Phase2.PAP);
 			enterpriseConfig.setAnonymousIdentity(configMap.get(INT_ANONYMOUS_IDENTITY));
 			enterpriseConfig.setEapMethod(Eap.TTLS);
-	
+
 			enterpriseConfig.setCaCertificate(caCert);
 			enterpriseConfig.setIdentity(s_username);
 			enterpriseConfig.setPassword(s_password);
 			enterpriseConfig.setSubjectMatch(configMap.get(INT_SUBJECT_MATCH));
 			currentConfig.enterpriseConfig = enterpriseConfig;
-			
+
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -381,8 +354,8 @@ public class WifiSetup extends Activity {
 		Builder builder = new AlertDialog.Builder(this);
 		switch (item.getItemId()) {
 	    case R.id.about:
-	    	PackageInfo pi = null;
-	    	try{
+			PackageInfo pi;
+			try{
 	    		pi = getPackageManager().getPackageInfo(getClass().getPackage().getName(), 0);
 	    	} catch(Exception e){
 	    		e.printStackTrace();
@@ -395,16 +368,14 @@ public class WifiSetup extends Activity {
 					"C"+pi.versionCode+"-equi");
 			builder.setPositiveButton(getString(android.R.string.ok), null);
 			builder.show();
-	    	
-	        return true;
-	    case R.id.exit:
+
+			return true;
+			case R.id.exit:
 	    	System.exit(0);
 	    }
 	    return false;
 	}
 
-	
-	
 	/* Update the status in the main thread */
 	protected void resultStatus(final boolean success, final String text) {
 		mHandler.post(new Runnable() {
@@ -427,17 +398,5 @@ public class WifiSetup extends Activity {
 				flipper.showNext();
 			}
 		});
-	}
-	
-	static String removeQuotes(String str) {
-		int len = str.length();
-		if ((len > 1) && (str.charAt(0) == '"') && (str.charAt(len - 1) == '"')) {
-			return str.substring(1, len - 1);
-		}
-		return str;
-	}
-
-	static String surroundWithQuotes(String string) {
-		return "\"" + string + "\"";
 	}
 }
