@@ -233,19 +233,19 @@ public class WifiSetup extends Activity {
 		}
 
 		if (check5g.isChecked()) {
-			ssid = "emfcamp";
+			ssid = "35C3";
 		} else {
-			ssid = "emfcamp-legacy18";
+			ssid = "35C3-legacy";
 		}
-		subject_match = "/CN=radius.emfcamp.org";
-		altsubject_match = "DNS:radius.emfcamp.org";
+		subject_match = "/CN=radius.c3noc.net";
+		altsubject_match = "DNS:radius.c3noc.net";
 
 		s_username = username.getText().toString();
 		s_password = password.getText().toString();
 		realm = "";
 		if (s_username.equals("") && s_password.equals("")) {
-			s_username = "emf";
-			s_password = "emf";
+			s_username = "35c3";
+			s_password = "35c3";
 		} else {
 			if (s_username.contains("@")) {
 				int idx = s_username.indexOf("@");
