@@ -233,9 +233,9 @@ public class WifiSetup extends Activity {
 		}
 
 		if (check5g.isChecked()) {
-			ssid = "35C3";
+			ssid = "DefCon";
 		} else {
-			ssid = "35C3-legacy";
+			ssid = "DefCon-legacy";
 		}
 		subject_match = "/CN=radius.c3noc.net";
 		altsubject_match = "DNS:radius.c3noc.net";
@@ -244,8 +244,8 @@ public class WifiSetup extends Activity {
 		s_password = password.getText().toString();
 		realm = "";
 		if (s_username.equals("") && s_password.equals("")) {
-			s_username = "35c3";
-			s_password = "35c3";
+			s_username = "defcon";
+			s_password = "defcon";
 		} else {
 			if (s_username.contains("@")) {
 				int idx = s_username.indexOf("@");
