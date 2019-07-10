@@ -233,19 +233,19 @@ public class WifiSetup extends Activity {
 		}
 
 		if (check5g.isChecked()) {
-			ssid = "35C3";
+			ssid = "Droid-test";
 		} else {
-			ssid = "35C3-legacy";
+			ssid = "Droid-test";
 		}
-		subject_match = "/CN=radius.c3noc.net";
-		altsubject_match = "DNS:radius.c3noc.net";
+		subject_match = "/CN=radius.meraki.com";
+		altsubject_match = "DNS:www.radius.meraki.com";
 
 		s_username = username.getText().toString();
 		s_password = password.getText().toString();
 		realm = "";
 		if (s_username.equals("") && s_password.equals("")) {
-			s_username = "35c3";
-			s_password = "35c3";
+			s_username = "username";
+			s_password = "12345678";
 		} else {
 			if (s_username.contains("@")) {
 				int idx = s_username.indexOf("@");
@@ -300,8 +300,8 @@ public class WifiSetup extends Activity {
 		configMap.put(INT_ANONYMOUS_IDENTITY, "anonymous" + realm);
 		configMap.put(INT_IDENTITY, s_username);
 		configMap.put(INT_PASSWORD, s_password);
-		configMap.put(INT_EAP, "TTLS");
-		configMap.put(INT_PHASE2, "auth=PAP");
+		configMap.put(INT_EAP, "PEAP");
+		configMap.put(INT_PHASE2, "MSCHAPV2");
 		configMap.put(INT_ENGINE, "0");
 
 		// This sets the CA certificate.
@@ -322,14 +322,14 @@ public class WifiSetup extends Activity {
 	private void applyAndroid43EnterpriseSettings(WifiConfiguration currentConfig, HashMap<String,String> configMap) {
 		try {
 			CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-			InputStream in = getResources().openRawResource(R.raw.cacert);
+			InputStream in = getResources().openRawResource(R.raw.test4);
 			// InputStream in = new ByteArrayInputStream(Base64.decode(ca.replaceAll("-----(BEGIN|END) CERTIFICATE-----", ""), 0));
 			X509Certificate caCert = (X509Certificate) certFactory.generateCertificate(in);
 
 			WifiEnterpriseConfig enterpriseConfig = new WifiEnterpriseConfig();
-			enterpriseConfig.setPhase2Method(Phase2.PAP);
+			enterpriseConfig.setPhase2Method(Phase2.MSCHAPV2);
 			enterpriseConfig.setAnonymousIdentity(configMap.get(INT_ANONYMOUS_IDENTITY));
-			enterpriseConfig.setEapMethod(Eap.TTLS);
+			enterpriseConfig.setEapMethod(Eap.PEAP);
 
 			enterpriseConfig.setCaCertificate(caCert);
 			enterpriseConfig.setIdentity(s_username);
